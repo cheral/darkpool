@@ -1,23 +1,55 @@
 package com.sampleGenerator;
 import java.util.Random;
+import java.util.Scanner;
 import java.util.concurrent.ThreadLocalRandom;
 
 
 public class generator {
 	
-	public static double market_activity = 0.2;
-	public static int sleep_time = (int)(1-market_activity)*1000;
-	public static double stock_volatilty = 1;
-	public static int stock_volume_index = (int)stock_volatilty*1000;
-	public static int no_of_fictious_users = 10;
+	public static double market_activity;
+	public static int sleep_time ;
+	public static double stock_volatilty;
+	public static int stock_volume_index;
+	public static int no_of_fictious_users;
 	public static long [] fictious_user_ids;
-	public static boolean generator_on=true;
-	public static int no_of_random_orders = 50;
-	public static int order_counter = no_of_random_orders;
-	public static double tick_size=0.05;
+	public static boolean generator_on;
+	public static int no_of_random_orders;
+	public static int order_counter;
+	public static double tick_size;
 	public static double ltp=155;
-	public static int last_vol=stock_volume_index;
-	 
+	public static int last_vol;
+	
+	public generator() {
+		market_activity = 0.2;
+		sleep_time = (int)(1-market_activity)*10000;
+		stock_volatilty = 1;
+		stock_volume_index = (int)stock_volatilty*1000;
+		no_of_fictious_users = 10;
+		
+		generator_on=true;
+		no_of_random_orders = 50;
+		order_counter = no_of_random_orders;
+		tick_size=0.05;
+
+		last_vol=stock_volume_index;
+	}
+	
+	
+	public generator(double market_activity, double stock_volatilty, int no_of_fictious_users, int no_of_random_orders, double tick_size) {
+		this.market_activity = market_activity;
+		sleep_time = (int)(1-market_activity)*10000;
+		this.stock_volatilty = stock_volatilty;
+		stock_volume_index = (int)this.stock_volatilty*1000;
+		this.no_of_fictious_users = no_of_fictious_users;
+		
+		generator_on=true;
+		this.no_of_random_orders = no_of_random_orders;
+		order_counter = no_of_random_orders;
+		this.tick_size=tick_size;
+		
+		last_vol=1000;
+	}
+	
 	
 	
 	public static int generateVol(double ltp, double price) {
@@ -27,14 +59,16 @@ public class generator {
 		
 		if (price>ltp) {
 			vol = (int)Math.round(rnd_vol.nextGaussian()*100 +(last_vol+stock_volume_index*Math.abs(ltp-price)));
-		}
+			}
 		else if (ltp>price) {
 			vol = (int)Math.round(rnd_vol.nextGaussian()*100 +(last_vol+stock_volume_index*Math.abs(ltp-price)));
-		}
-			else {
-			vol = (int)Math.round(rnd_vol.nextGaussian()*100 +last_vol);
 			}
+			else {
+				vol = (int)Math.round(rnd_vol.nextGaussian()*100 +last_vol);
+				}
 		
+
+		last_vol=vol;
 		return vol;
 	}
 	
@@ -62,14 +96,14 @@ public class generator {
 	
 	
 	public static double generateMinFill() {
-		
 
 		Random rnd_min_fill = new Random();
 	
 		double min_fill = ThreadLocalRandom.current().nextInt(0, 2 + 1);
 		
 		if (min_fill == 2.0) {
-			min_fill = (double) Math.round((rnd_min_fill.nextGaussian() * 0.2 + 0.5) * 100) / 100;
+			min_fill =  (double)Math.round((rnd_min_fill.nextGaussian() * 0.1 + 0.5) * 100) / 100;
+			min_fill= (double)Math.round((Math.round(min_fill/0.01 )*0.01)*100)/100;
 		}
 		
 		return min_fill;
@@ -134,8 +168,29 @@ public class generator {
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
+//, double , int , int , double 
+		System.out.println("Please enter the required parameters for random orders.");
 		
-		generator gen = new generator();
+		Scanner sc=new Scanner(System.in);
+		
+		System.out.println("On a scale of 0->1, how active do you want the market to be? (0 being the least)");
+		double market_activity = sc.nextDouble();
+		
+		System.out.println("On a scale of 0->1, how volatile do you want the stock to be? (0 being the least)");
+		double stock_volatilty = sc.nextDouble();
+		
+		System.out.println("How many fictious users do you want the market to have? (Please enter an integer.)");
+		int no_of_fictious_users= sc.nextInt();
+		
+		System.out.println("How many random orders do you want the generator to generate? (Please enter an integer.)");
+		int no_of_random_orders= sc.nextInt();
+		
+		
+		System.out.println("What tick size do want to have?");
+		double tick_size= sc.nextDouble();
+		
+		
+		generator gen = new generator(market_activity,stock_volatilty,no_of_fictious_users,no_of_random_orders, tick_size);
 		
 		long [] fictious_user_ids = gen.generate_user_ids(no_of_fictious_users);
 		
@@ -186,6 +241,7 @@ public class generator {
 			    Thread.sleep(sleep_time);
 			} catch (InterruptedException e) {
 			    e.printStackTrace();
+			    
 			}
 			
 			order_counter = order_counter-1;
